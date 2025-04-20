@@ -20,13 +20,27 @@ function AIInterface() {
     setLoading(true)
     setResponse(null)
     try {
-      // Backend integration will go here
+      const response = await fetch('http://localhost:8000/run-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: formData.mainQuery })
+      });
+      
+      const data = await response.json()
       setResponse({
-        text: `Processed query: ${formData.mainQuery}\nAdditional Info: ${formData.additionalInfo || 'None provided'}`,
-        timestamp: new Date().toISOString()
+        text: data.message || data.response || 'No response from server',
+        timestamp: new Date().toISOString(),
+        error: data.status === 'error',
+        url: data.url
       })
     } catch (error) {
-      setResponse({ error: 'Failed to process query' })
+      setResponse({
+        error: true,
+        text: 'Failed to connect to the server',
+        timestamp: new Date().toISOString()
+      })
     } finally {
       setLoading(false)
     }

@@ -32,7 +32,7 @@ function QueryForm({ onSubmit, loading }) {
             value={formData.mainQuery}
             onChange={handleChange}
             className="w-full px-4 py-4 rounded-xl bg-gray-800/50 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-white placeholder-gray-400"
-            placeholder="What would you like me to help you with?"
+            placeholder="Try: 'Find me documentation about FastAPI framework'"
           />
         </div>
 
