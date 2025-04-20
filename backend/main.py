@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from action_router import ActionRouter, ActionType
 
 # Load env
 dotenv.load_dotenv()
@@ -67,19 +68,32 @@ def open_in_browser(url):
     time.sleep(5)  # Let the site load
     return True
 
+action_router = ActionRouter()
+
 @app.post("/run-agent")
 async def run_agent(command: AgentCommand):
     try:
-        response = get_site_from_model(command.prompt)
-        url = extract_url(response)
+        # Determine action type and parameters
+        action_type, params = action_router.parse_action(command.prompt)
 
-        if url:
+        if action_type == ActionType.BROWSER:
+            url = action_router.format_browser_url(params)
             success = open_in_browser(url)
             if success:
-                return {"status": "success", "message": f"Navigated to {url}", "url": url}
+                return {
+                    "status": "success",
+                    "message": f"Performed browser action: {params['action']} {params['target']}",
+                    "url": url
+                }
             else:
-                return {"status": "error", "message": "Failed to open browser"}
+                return {"status": "error", "message": "Failed to perform browser action"}
         else:
-            return {"status": "error", "message": "No URL found in response", "response": response}
+            # Handle as a regular query to OpenRouter
+            response = get_site_from_model(command.prompt)
+            return {
+                "status": "success",
+                "message": response,
+                "type": "query"
+            }
     except Exception as e:
         return {"status": "error", "message": str(e)}
